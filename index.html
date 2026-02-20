@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMEX Silver Warehouse Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+
+    <style>
+        body { font-family: sans-serif; margin: 40px; background: #f4f4f9; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        canvas { max-height: 500px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>COMEX Silver: Inventory Levels Over Time</h2>
+    <canvas id="silverChart"></canvas>
+</div>
+<P>
+<center>
+Source: <a href="https://www.cmegroup.com/solutions/clearing/operations-and-deliveries/nymex-delivery-notices.html">Operations and Deliveries Notices</a>. Historical Data: <a href="historic/">Directory</a>
+
+<script>
+    const CSV_FILE = 'silver_stocks_master.csv';
+
+    async function fetchData() {
+        const response = await fetch(CSV_FILE);
+        const reader = response.body.getReader();
+        const result = await reader.read();
+        const decoder = new TextDecoder('utf-8');
+        const csv = decoder.decode(result.value);
+        
+        Papa.parse(csv, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                renderChart(results.data);
+            }
+        });
+    }
+
+
+function renderChart(data) {
+    // Map the data into {x: Date, y: Value} objects for Chart.js
+    const registeredData = data.map(row => ({
+        x: new Date(row['Activity Date']),
+        y: row['Registered']
+    }));
+    
+    const eligibleData = data.map(row => ({
+        x: new Date(row['Activity Date']),
+        y: row['Eligible']
+    }));
+    
+    const totalData = data.map(row => ({
+        x: new Date(row['Activity Date']),
+        y: row['Total']
+    }));
+
+    const ctx = document.getElementById('silverChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                    label: 'Registered',
+                    data: registeredData,
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Eligible',
+                    data: eligibleData,
+                    borderColor: '#3498db',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Total Inventory',
+                    data: totalData,
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                    borderWidth: 3,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time', // This is the magic line
+                    time: {
+                        unit: 'day',
+                        displayFormats: {
+                            day: 'MMM dd, yyyy'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Timeline (Proportional Spacing)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Ounces'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            }
+        }
+    });
+}
+
+
+    fetchData();
+</script>
+
+</body>
+</html>
