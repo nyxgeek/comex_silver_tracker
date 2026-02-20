@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,7 +25,10 @@
 </div>
 <P>
 <center>
-Source: <a href="https://www.cmegroup.com/solutions/clearing/operations-and-deliveries/nymex-delivery-notices.html">Operations and Deliveries Notices</a>. Historical Data: <a href="historic/">Directory</a>
+Source: <a href="https://www.cmegroup.com/solutions/clearing/operations-and-deliveries/nymex-delivery-notices.html">Operations and Deliveries Notices</a>. Historical Data: <a href="historic/">Directory</a><P>
+<button id="downloadBtn" style="margin-bottom: 10px; padding: 8px 16px; cursor: pointer; background: #2ecc71; color: white; border: none; border-radius: 4px;">
+        Export as PNG
+    </button>
 
 <script>
     const CSV_FILE = 'comex_silver_master.csv';
@@ -45,6 +49,23 @@ Source: <a href="https://www.cmegroup.com/solutions/clearing/operations-and-deli
             }
         });
     }
+
+
+document.getElementById('downloadBtn').addEventListener('click', function() {
+        const canvas = document.getElementById('silverChart');
+        
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.download = 'Silver_Inventory_Chart.png';
+        
+        // Convert canvas to data URL (PNG format)
+        link.href = canvas.toDataURL('image/png');
+        
+        // Trigger the download
+        link.click();
+    });
+
+
 
 
 function renderChart(data) {
@@ -106,10 +127,19 @@ function renderChart(data) {
                     },
                     title: {
                         display: true,
-                        text: 'Timeline (Proportional Spacing)'
+                        text: ['Timeline of COMEX Silver Drawdown','@nyxgeek'],
+			font: {
+               		    size: 14,
+	                    weight: 'bold'
+            		    },
+	                padding: {
+            		    top: 30,
+                	    bottom: 20
+            		}
                     }
                 },
                 y: {
+		    beginAtZero: true,
                     title: {
                         display: true,
                         text: 'Ounces'
@@ -122,7 +152,19 @@ function renderChart(data) {
                     intersect: false
                 }
             }
-        }
+        },
+
+	plugins: [{
+	        id: 'custom_canvas_background',
+	        beforeDraw: (chart) => {
+	            const {ctx} = chart;
+	            ctx.save();
+	            ctx.globalCompositeOperation = 'destination-over';
+	            ctx.fillStyle = 'white';
+	            ctx.fillRect(0, 0, chart.width, chart.height);
+	            ctx.restore();
+	        }
+	}]
     });
 }
 
