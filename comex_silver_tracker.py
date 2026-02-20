@@ -7,7 +7,7 @@ import urllib3
 
 # --- Configuration ---
 URL = "https://www.cmegroup.com/delivery_reports/Silver_stocks.xls"
-CSV_FILE = "silver_stocks_master.csv"
+CSV_FILE = "comex_silver_master.csv"
 XLS_FILENAME = f"Silver_Stocks.TEMP.xls"
 HISTORIC_FOLDER = "historic"
 
